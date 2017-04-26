@@ -57,10 +57,11 @@ namespace SmartDlg {
 	};
 	/// -----
 
-	/// Widget base class
-	/// -----------------
+	/// Base classes
+	/// ------------
+	// Base class for all objects in a window's hierarchy
 	class Base {
-	private:
+	protected:
 		virtual void updateArea(unsigned_point_t &area) = 0;
 		virtual void updatePos(POINT &pos_abs) {
 			pos_abs.x = 0;
@@ -70,20 +71,12 @@ namespace SmartDlg {
 			ZeroMemory(&padding, sizeof(padding));
 		}
 
-		virtual LPCSTR CLASS_NAME() { return NULL; }
-
 	public:
-		HWND hWnd = nullptr;
 		Base *parent = nullptr;
-		Base *child = nullptr;
 
 		CACHED(unsigned_point_t, area, getArea, updateArea);
 		CACHED(unsigned_rect_t, padding, getPadding, updatePadding);
 		CACHED(POINT, pos, getPos, updatePos);
-
-		const char *text = nullptr;
-		DWORD style = 0;
-		DWORD style_ex = 0;
 
 		virtual unsigned_point_t getAreaPadded();
 		virtual POINT getPosPadded();
@@ -93,21 +86,40 @@ namespace SmartDlg {
 			return parent->getFont();
 		}
 
+		virtual void applyFontRecursive() = 0;
+		virtual void createRecursive(HWND hWndParent) = 0;
+
+		virtual void addChild(Base *child) = 0;
+	};
+
+	// Base class for all displayed widgets
+	class BaseWidget : public Base {
+	private:
+		virtual LPCSTR CLASS_NAME() { return NULL; }
+
+	public:
+		Base *child = nullptr;
+
+		HWND hWnd = nullptr;
+		const char *text = nullptr;
+		DWORD style = 0;
+		DWORD style_ex = 0;
+
 		virtual void applyFontRecursive();
 		virtual void createRecursive(HWND hWndParent);
 
-		Base(Base *parent) : parent(parent) {
+		virtual void addChild(Base *w);
+
+		BaseWidget(Base *parent) {
 			if(parent) {
-				assert(parent->child == nullptr);
-				parent->child = this;
+				parent->addChild(this);
 			}
 		}
 	};
-	/// -----------------
 
 	/// Label
 	/// -----
-	class Label : public Base {
+	class Label : public BaseWidget {
 	private:
 		virtual void updateArea(unsigned_point_t &area);
 		virtual void updatePadding(unsigned_rect_t &padding);
@@ -115,7 +127,7 @@ namespace SmartDlg {
 		virtual LPCSTR CLASS_NAME() { return "Static"; }
 
 	public:
-		Label(Base *parent, const char *str) : Base(parent) {
+		Label(Base *parent, const char *str) : BaseWidget(parent) {
 			text = str;
 		}
 	};
@@ -123,7 +135,7 @@ namespace SmartDlg {
 
 	/// Top-level dialog window
 	/// -----------------------
-	class Top : public Base {
+	class Top : public BaseWidget {
 	private:
 		virtual void updateArea(unsigned_point_t &area);
 		virtual void updatePos(POINT &pos_abs);
@@ -145,7 +157,7 @@ namespace SmartDlg {
 
 		virtual void close();
 
-		Top() : Base(nullptr) {
+		Top() : BaseWidget(nullptr) {
 			style |= WS_OVERLAPPED;
 		}
 

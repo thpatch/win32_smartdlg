@@ -57,8 +57,8 @@ namespace SmartDlg {
 	}
 	/// -----
 
-	/// Widget base class
-	/// -----------------
+	/// Base classes
+	/// ------------
 	unsigned_point_t Base::getAreaPadded()
 	{
 		auto ret = getArea();
@@ -77,7 +77,7 @@ namespace SmartDlg {
 		return ret;
 	}
 
-	void Base::applyFontRecursive()
+	void BaseWidget::applyFontRecursive()
 	{
 		const auto &font = getFont();
 		SendMessageW(hWnd, WM_SETFONT, (WPARAM)font.hFont, 0);
@@ -86,7 +86,7 @@ namespace SmartDlg {
 		}
 	}
 
-	void Base::createRecursive(HWND hWndParent)
+	void BaseWidget::createRecursive(HWND hWndParent)
 	{
 		const auto &pos = getPosPadded();
 		const auto &area = getArea();
@@ -102,6 +102,13 @@ namespace SmartDlg {
 		if(child) {
 			child->createRecursive(hWnd);
 		}
+	}
+
+	void BaseWidget::addChild(Base *w)
+	{
+		assert(child == nullptr);
+		child = w;
+		w->parent = this;
 	}
 	/// -----------------
 
