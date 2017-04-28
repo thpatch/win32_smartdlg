@@ -44,8 +44,11 @@ namespace SmartDlg {
 		void create(const LOGFONTW *lf);
 	public:
 		HDC hDC = GetDC(nullptr);
+		LONG height = 0;
 		LONG pad = 0;
 		HFONT hFont = nullptr;
+
+		void getPadding(unsigned_rect_t &padding);
 
 		~Font();
 	};
@@ -68,7 +71,7 @@ namespace SmartDlg {
 			pos_abs.y = 0;
 		}
 		virtual void updatePadding(unsigned_rect_t &padding) {
-			ZeroMemory(&padding, sizeof(padding));
+			getFont().getPadding(padding);
 		}
 
 	public:
@@ -122,7 +125,6 @@ namespace SmartDlg {
 	class Label : public BaseWidget {
 	private:
 		virtual void updateArea(unsigned_point_t &area);
-		virtual void updatePadding(unsigned_rect_t &padding);
 
 		virtual LPCSTR CLASS_NAME() { return "Static"; }
 
@@ -139,6 +141,7 @@ namespace SmartDlg {
 	private:
 		virtual void updateArea(unsigned_point_t &area);
 		virtual void updatePos(POINT &pos_abs);
+		virtual void updatePadding(unsigned_rect_t &padding);
 
 		virtual LPCSTR CLASS_NAME() { return MAKEINTRESOURCEA(WC_DIALOG); }
 

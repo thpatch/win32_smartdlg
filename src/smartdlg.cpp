@@ -35,6 +35,16 @@ namespace SmartDlg {
 		if(hFont) {
 			SelectObject(hDC, hFont);
 		}
+		height = (lf->lfHeight < 0 ? -lf->lfHeight : lf->lfHeight);
+		pad = height / 2;
+	}
+
+	void Font::getPadding(unsigned_rect_t &padding)
+	{
+		padding.top = pad;
+		padding.left = pad;
+		padding.right = pad;
+		padding.bottom = pad;
 	}
 
 	Font::~Font()
@@ -50,9 +60,7 @@ namespace SmartDlg {
 		if(SystemParametersInfoW(
 			SPI_GETNONCLIENTMETRICS, sizeof(nc_metrics), &nc_metrics, 0
 		)) {
-			int height = nc_metrics.lfMessageFont.lfHeight;
 			create(&nc_metrics.lfMessageFont);
-			pad = (height < 0 ? -height : height);
 		}
 	}
 	/// -----
@@ -124,17 +132,6 @@ namespace SmartDlg {
 		area.x = rect.right;
 		area.y = rect.bottom;
 	}
-
-	void Label::updatePadding(unsigned_rect_t &padding)
-	{
-		assert(padding_stale); // Call getPosPadded() instead!
-
-		const auto& font = getFont();
-		padding.top = font.pad;
-		padding.left = font.pad;
-		padding.right = font.pad;
-		padding.bottom = font.pad;
-	}
 	/// -----
 
 	/// Top-level dialog window
@@ -163,6 +160,11 @@ namespace SmartDlg {
 		}
 		pos_abs.x = (screen.right / 2) - (area.x / 2);
 		pos_abs.y = (screen.bottom / 2) - (area.y / 2);
+	}
+
+	void Top::updatePadding(unsigned_rect_t &padding)
+	{
+		ZeroMemory(&padding, sizeof(padding));
 	}
 
 	WPARAM Top::create_and_run()
