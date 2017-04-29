@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <vector>
+
 namespace SmartDlg {
 	// It makes little sense for things like area or padding to accept
 	// negative values.
@@ -119,6 +121,24 @@ namespace SmartDlg {
 			}
 		}
 	};
+
+	// Base class for layout groups
+	class BaseGroup : public Base {
+	protected:
+		std::vector<Base *> children;
+
+	public:
+		virtual void applyFontRecursive();
+		virtual void createRecursive(HWND hWndParent);
+
+		virtual void addChild(Base *w);
+
+		BaseGroup(Base *parent) {
+			assert(parent);
+			parent->addChild(this);
+		}
+	};
+	/// ------------
 
 	/// Label
 	/// -----

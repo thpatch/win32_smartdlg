@@ -118,6 +118,26 @@ namespace SmartDlg {
 		child = w;
 		w->parent = this;
 	}
+
+	void BaseGroup::applyFontRecursive()
+	{
+		for(auto &it : children) {
+			it->applyFontRecursive();
+		}
+	}
+
+	void BaseGroup::createRecursive(HWND hWndParent)
+	{
+		for(auto &it : children) {
+			it->createRecursive(hWndParent);
+		}
+	}
+
+	void BaseGroup::addChild(Base *w)
+	{
+		children.push_back(w);
+		w->parent = this;
+	}
 	/// -----------------
 
 	/// Label
