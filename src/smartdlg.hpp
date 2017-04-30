@@ -23,6 +23,10 @@ namespace SmartDlg {
 		unsigned int bottom = 0;
 	};
 
+	// Set width or height to this value to have
+	// the parent widget determine them instead.
+#define MAX_AREA (unsigned int)(-1)
+
 	// Good luck trying to do the same with templates.
 #define CACHED(type, name, get_method, update_method) \
 	private: \
@@ -69,6 +73,10 @@ namespace SmartDlg {
 	protected:
 		virtual void updateArea(unsigned_point_t &area) = 0;
 		virtual void updatePos(POINT &pos_abs) {
+			assert(parent);
+			parent->updatePosForChild(pos_abs, this);
+		}
+		virtual void updatePosForChild(POINT &pos_abs, Base *w) {
 			pos_abs.x = 0;
 			pos_abs.y = 0;
 		}
@@ -90,6 +98,9 @@ namespace SmartDlg {
 			assert(parent != nullptr);
 			return parent->getFont();
 		}
+
+		virtual void overrideWidth(unsigned int w);
+		virtual void overrideHeight(unsigned int h);
 
 		virtual void applyFontRecursive() = 0;
 		virtual void createRecursive(HWND hWndParent) = 0;

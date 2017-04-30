@@ -71,8 +71,8 @@ namespace SmartDlg {
 	{
 		auto ret = getArea();
 		const auto& pad = getPadding();
-		ret.x += pad.left + pad.right;
-		ret.y += pad.top + pad.bottom;
+		ret.x += (ret.x == MAX_AREA) ? 0 : pad.left + pad.right;
+		ret.y += (ret.y == MAX_AREA) ? 0 : pad.top + pad.bottom;
 		return ret;
 	}
 
@@ -83,6 +83,18 @@ namespace SmartDlg {
 		ret.x += pad.left;
 		ret.y += pad.right;
 		return ret;
+	}
+
+	void Base::overrideWidth(unsigned int w)
+	{
+		const auto &pad = getPadding();
+		area.x = w - pad.left - pad.right;
+	}
+
+	void Base::overrideHeight(unsigned int h)
+	{
+		const auto &pad = getPadding();
+		area.y = h - pad.top - pad.bottom;
 	}
 
 	void BaseWidget::applyFontRecursive()
@@ -98,6 +110,10 @@ namespace SmartDlg {
 	{
 		const auto &pos = getPosPadded();
 		const auto &area = getArea();
+
+		assert(area.x != MAX_AREA || !"Make sure you have some explicitly sized parent widget!");
+		assert(area.y != MAX_AREA || !"Make sure you have some explicitly sized parent widget!");
+
 		if(hWndParent) {
 			style |= WS_CHILD | WS_VISIBLE;
 			style_ex |= WS_EX_NOPARENTNOTIFY;
