@@ -23,6 +23,12 @@ namespace SmartDlg {
 		unsigned int bottom = 0;
 	};
 
+	enum align_t {
+		LEFT,
+		CENTER,
+		RIGHT
+	};
+
 	// Set width or height to this value to have
 	// the parent widget determine them instead.
 #define MAX_AREA (unsigned int)(-1)
@@ -150,6 +156,22 @@ namespace SmartDlg {
 		}
 	};
 	/// ------------
+
+	/// Layout groups
+	/// -------------
+	class VerticalGroup : public BaseGroup {
+	private:
+		virtual void updateArea(unsigned_point_t &area);
+		virtual void updatePosForChild(POINT &pos_abs, Base *w);
+
+	public:
+		align_t halign = LEFT;
+
+		VerticalGroup(Base *parent, align_t halign = LEFT)
+			: BaseGroup(parent), halign(halign) {
+		}
+	};
+	/// -------------
 
 	/// Label
 	/// -----

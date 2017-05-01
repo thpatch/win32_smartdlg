@@ -156,6 +156,59 @@ namespace SmartDlg {
 	}
 	/// -----------------
 
+	/// Layout groups
+	/// -------------
+	void VerticalGroup::updateArea(unsigned_point_t &area)
+	{
+		assert(area_stale); // Call getArea() instead!
+
+		VLA(Base *, area_fixup, children.size());
+		unsigned int area_fixup_count = 0;
+
+		area.x = 0;
+		area.y = 0;
+		for(auto &it : children) {
+			const auto &child_area = it->getAreaPadded();
+			if(child_area.x == MAX_AREA) {
+				area_fixup[area_fixup_count++] = it;
+			} else {
+				area.x = max(area.x, child_area.x);
+			}
+			area.y += child_area.y;
+		}
+		for(unsigned int i = 0; i < area_fixup_count; i++) {
+			area_fixup[i]->overrideWidth(area.x);
+		}
+	}
+
+	void VerticalGroup::updatePosForChild(POINT &pos_abs, Base *w)
+	{
+		const auto &self_area = getArea();
+		const auto &self_pos = getPosPadded();
+
+		pos_abs.x = self_pos.x;
+		pos_abs.y = self_pos.y;
+		for(auto &it : children) {
+			const auto &child_area = it->getAreaPadded();
+			if(it == w) {
+				switch(halign) {
+				case LEFT:
+					break;
+				case CENTER:
+					pos_abs.x += (self_area.x / 2) - (child_area.x / 2);
+					break;
+				case RIGHT:
+					pos_abs.x += self_area.x - child_area.x;
+					break;
+				}
+				return;
+			}
+			pos_abs.y += child_area.y;
+		}
+		assert(!"not a child of this group");
+	}
+	/// -------------
+
 	/// Label
 	/// -----
 	void Label::updateArea(unsigned_point_t &area)
