@@ -135,6 +135,13 @@ namespace SmartDlg {
 		w->parent = this;
 	}
 
+	void BaseWidget::setText(const char *text_new)
+	{
+		text = text_new;
+		// No nullptr check for hWnd necessary.
+		SetWindowTextU(hWnd, text_new);
+	}
+
 	void BaseGroup::applyFontRecursive()
 	{
 		for(auto &it : children) {
@@ -267,7 +274,7 @@ namespace SmartDlg {
 		ZeroMemory(&padding, sizeof(padding));
 	}
 
-	WPARAM Top::create_and_run()
+	WPARAM Top::create_and_run(const char *title)
 	{
 		// CreateWindowEx() sets this automatically for windows with
 		// WS_OVERLAPPED, but AdjustWindowRectEx() doesn't, causing
@@ -275,6 +282,10 @@ namespace SmartDlg {
 		// See https://github.com/wine-mirror/wine/blob/797a746fc2a1b17d67b7423293e081e3e7171033/dlls/user32/win.c#L1499
 		if(style == WS_OVERLAPPED) {
 			style |= WS_CAPTION;
+		}
+
+		if(title) {
+			text = title;
 		}
 		createRecursive(nullptr);
 		applyFontRecursive();

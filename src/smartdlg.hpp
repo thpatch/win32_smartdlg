@@ -119,11 +119,13 @@ namespace SmartDlg {
 	private:
 		virtual LPCSTR CLASS_NAME() { return NULL; }
 
+	protected:
+		const char *text = nullptr;
+
 	public:
 		Base *child = nullptr;
 
 		HWND hWnd = nullptr;
-		const char *text = nullptr;
 		DWORD style = 0;
 		DWORD style_ex = 0;
 
@@ -131,6 +133,8 @@ namespace SmartDlg {
 		virtual void createRecursive(HWND hWndParent);
 
 		virtual void addChild(Base *w);
+
+		virtual void setText(const char *text_new);
 
 		BaseWidget(Base *parent) {
 			if(parent) {
@@ -224,7 +228,7 @@ namespace SmartDlg {
 		// The Win32 API demands that the message loop must be run in the
 		// same thread that called CreateWindow(), so we might as well
 		// combine both into a single function.
-		virtual WPARAM create_and_run();
+		virtual WPARAM create_and_run(const char *title = nullptr);
 
 		virtual void close();
 
