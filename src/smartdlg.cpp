@@ -269,6 +269,13 @@ namespace SmartDlg {
 
 	WPARAM Top::create_and_run()
 	{
+		// CreateWindowEx() sets this automatically for windows with
+		// WS_OVERLAPPED, but AdjustWindowRectEx() doesn't, causing
+		// our calculations to return a window size that's too small.
+		// See https://github.com/wine-mirror/wine/blob/797a746fc2a1b17d67b7423293e081e3e7171033/dlls/user32/win.c#L1499
+		if(style == WS_OVERLAPPED) {
+			style |= WS_CAPTION;
+		}
 		createRecursive(nullptr);
 		applyFontRecursive();
 		ShowWindow(hWnd, SW_SHOW);
