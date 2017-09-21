@@ -188,6 +188,21 @@ namespace SmartDlg {
 	};
 	/// -----
 
+	/// Progress bar
+	/// ------------
+	class ProgressBar : public BaseWidget {
+	private:
+		virtual void updateArea(unsigned_point_t &area);
+
+		virtual LPCSTR CLASS_NAME() { return PROGRESS_CLASSA; }
+
+	public:
+		ProgressBar(Base *parent) : BaseWidget(parent) {
+			style |= PBS_SMOOTH;
+		}
+	};
+	/// ------------
+
 	/// Top-level dialog window
 	/// -----------------------
 	class Top : public BaseWidget {

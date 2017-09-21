@@ -223,6 +223,17 @@ namespace SmartDlg {
 	}
 	/// -----
 
+	/// Progress bar
+	/// ------------
+	void ProgressBar::updateArea(unsigned_point_t &area)
+	{
+		assert(area_stale); // Call getArea() instead!
+
+		area.x = MAX_AREA;
+		area.y = getFont().height * 2;
+	}
+	/// ------------
+
 	/// Top-level dialog window
 	/// -----------------------
 	void Top::updateArea(unsigned_point_t &area)
