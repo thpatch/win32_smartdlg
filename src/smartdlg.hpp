@@ -97,16 +97,17 @@ namespace SmartDlg {
 		CACHED(unsigned_rect_t, padding, getPadding, updatePadding);
 		CACHED(POINT, pos, getPos, updatePos);
 
-		virtual unsigned_point_t getAreaPadded();
+		// Resolves MAX_AREA to the width or height of the
+		// parent widget.
+		virtual unsigned_point_t getRealArea();
+
+		virtual unsigned_point_t pad(unsigned_point_t area);
 		virtual POINT getPosPadded();
 
 		virtual Font& getFont() {
 			assert(parent != nullptr);
 			return parent->getFont();
 		}
-
-		virtual void overrideWidth(unsigned int w);
-		virtual void overrideHeight(unsigned int h);
 
 		virtual void applyFontRecursive() = 0;
 		virtual void createRecursive(HWND hWndParent) = 0;

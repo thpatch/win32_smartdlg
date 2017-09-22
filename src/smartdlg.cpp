@@ -67,13 +67,35 @@ namespace SmartDlg {
 
 	/// Base classes
 	/// ------------
-	unsigned_point_t Base::getAreaPadded()
+	unsigned_point_t Base::getRealArea()
 	{
 		auto ret = getArea();
-		const auto& pad = getPadding();
-		ret.x += (ret.x == MAX_AREA) ? 0 : pad.left + pad.right;
-		ret.y += (ret.y == MAX_AREA) ? 0 : pad.top + pad.bottom;
+		bool x_is_max = (area.x == MAX_AREA);
+		bool y_is_max = (area.y == MAX_AREA);
+		if(!parent) {
+			assert(!x_is_max || !"Make sure you have some explicitly sized parent widget!");
+			assert(!y_is_max || !"Make sure you have some explicitly sized parent widget!");
+			return ret;
+		}
+		if(x_is_max || y_is_max) {
+			const auto& parent_area = parent->getRealArea();
+			const auto &pad = getPadding();
+			if(x_is_max) {
+				ret.x = parent_area.x - pad.left - pad.right;
+			}
+			if(y_is_max) {
+				ret.y = parent_area.y - pad.top - pad.bottom;
+			}
+		}
 		return ret;
+	}
+
+	unsigned_point_t Base::pad(unsigned_point_t area)
+	{
+		const auto& pad = getPadding();
+		area.x += (area.x == MAX_AREA) ? 0 : pad.left + pad.right;
+		area.y += (area.y == MAX_AREA) ? 0 : pad.top + pad.bottom;
+		return area;
 	}
 
 	POINT Base::getPosPadded()
@@ -83,18 +105,6 @@ namespace SmartDlg {
 		ret.x += pad.left;
 		ret.y += pad.right;
 		return ret;
-	}
-
-	void Base::overrideWidth(unsigned int w)
-	{
-		const auto &pad = getPadding();
-		area.x = w - pad.left - pad.right;
-	}
-
-	void Base::overrideHeight(unsigned int h)
-	{
-		const auto &pad = getPadding();
-		area.y = h - pad.top - pad.bottom;
 	}
 
 	void BaseWidget::applyFontRecursive()
@@ -109,10 +119,7 @@ namespace SmartDlg {
 	void BaseWidget::createRecursive(HWND hWndParent)
 	{
 		const auto &pos = getPosPadded();
-		const auto &area = getArea();
-
-		assert(area.x != MAX_AREA || !"Make sure you have some explicitly sized parent widget!");
-		assert(area.y != MAX_AREA || !"Make sure you have some explicitly sized parent widget!");
+		const auto &area = getRealArea();
 
 		if(hWndParent) {
 			style |= WS_CHILD | WS_VISIBLE;
@@ -169,34 +176,26 @@ namespace SmartDlg {
 	{
 		assert(area_stale); // Call getArea() instead!
 
-		VLA(Base *, area_fixup, children.size());
-		unsigned int area_fixup_count = 0;
-
 		area.x = 0;
 		area.y = 0;
 		for(auto &it : children) {
-			const auto &child_area = it->getAreaPadded();
-			if(child_area.x == MAX_AREA) {
-				area_fixup[area_fixup_count++] = it;
-			} else {
+			const auto &child_area = it->pad(it->getArea());
+			if(child_area.x != MAX_AREA) {
 				area.x = max(area.x, child_area.x);
 			}
 			area.y += child_area.y;
-		}
-		for(unsigned int i = 0; i < area_fixup_count; i++) {
-			area_fixup[i]->overrideWidth(area.x);
 		}
 	}
 
 	void VerticalGroup::updatePosForChild(POINT &pos_abs, Base *w)
 	{
-		const auto &self_area = getArea();
+		const auto &self_area = getRealArea();
 		const auto &self_pos = getPosPadded();
 
 		pos_abs.x = self_pos.x;
 		pos_abs.y = self_pos.y;
 		for(auto &it : children) {
-			const auto &child_area = it->getAreaPadded();
+			const auto &child_area = it->pad(it->getRealArea());
 			if(it == w) {
 				switch(halign) {
 				case LEFT:
@@ -248,7 +247,7 @@ namespace SmartDlg {
 		assert(child);
 		assert(area_stale); // Call getArea() instead!
 
-		auto child_area = child->getAreaPadded();
+		auto child_area = child->pad(child->getRealArea());
 		RECT self = {0, 0, child_area.x, child_area.y};
 		AdjustWindowRectEx(&self, style, false, style_ex);
 		area.x = self.right - self.left;
