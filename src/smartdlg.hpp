@@ -130,6 +130,10 @@ namespace SmartDlg {
 		DWORD style = 0;
 		DWORD style_ex = 0;
 
+		virtual unsigned_point_t decorate(unsigned_point_t area) {
+			return area;
+		}
+
 		virtual void applyFontRecursive();
 		virtual void createRecursive(HWND hWndParent);
 
@@ -225,6 +229,8 @@ namespace SmartDlg {
 		HANDLE event_created = CreateEvent(nullptr, true, false, nullptr);
 
 		virtual Font& getFont() { return font; }
+
+		virtual unsigned_point_t decorate(unsigned_point_t area);
 
 		// The Win32 API demands that the message loop must be run in the
 		// same thread that called CreateWindow(), so we might as well

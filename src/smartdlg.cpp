@@ -119,7 +119,7 @@ namespace SmartDlg {
 	void BaseWidget::createRecursive(HWND hWndParent)
 	{
 		const auto &pos = getPosPadded();
-		const auto &area = getRealArea();
+		const auto &area = decorate(getRealArea());
 
 		if(hWndParent) {
 			style |= WS_CHILD | WS_VISIBLE;
@@ -247,11 +247,7 @@ namespace SmartDlg {
 		assert(child);
 		assert(area_stale); // Call getArea() instead!
 
-		auto child_area = child->pad(child->getRealArea());
-		RECT self = {0, 0, child_area.x, child_area.y};
-		AdjustWindowRectEx(&self, style, false, style_ex);
-		area.x = self.right - self.left;
-		area.y = self.bottom - self.top;
+		area = child->pad(child->getRealArea());
 	}
 
 	void Top::updatePos(POINT &pos_abs)
@@ -271,6 +267,15 @@ namespace SmartDlg {
 	void Top::updatePadding(unsigned_rect_t &padding)
 	{
 		ZeroMemory(&padding, sizeof(padding));
+	}
+
+	unsigned_point_t Top::decorate(unsigned_point_t area)
+	{
+		RECT self = { 0, 0, area.x, area.y };
+		AdjustWindowRectEx(&self, style, false, style_ex);
+		area.x = self.right - self.left;
+		area.y = self.bottom - self.top;
+		return area;
 	}
 
 	WPARAM Top::create_and_run(const char *title)
