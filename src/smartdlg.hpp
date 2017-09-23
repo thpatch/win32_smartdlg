@@ -110,9 +110,12 @@ namespace SmartDlg {
 		}
 
 		virtual void applyFontRecursive() = 0;
+		virtual void applyDimensionsRecursive() = 0;
 		virtual void createRecursive(HWND hWndParent) = 0;
 
 		virtual void addChild(Base *child) = 0;
+
+		virtual void applyAreaChangeUpwards(Base *child) = 0;
 	};
 
 	// Base class for all displayed widgets
@@ -135,9 +138,12 @@ namespace SmartDlg {
 		}
 
 		virtual void applyFontRecursive();
+		virtual void applyDimensionsRecursive();
 		virtual void createRecursive(HWND hWndParent);
 
 		virtual void addChild(Base *w);
+
+		virtual void applyAreaChangeUpwards(Base *child);
 
 		virtual void setText(const char *text_new);
 
@@ -155,9 +161,12 @@ namespace SmartDlg {
 
 	public:
 		virtual void applyFontRecursive();
+		virtual void applyDimensionsRecursive();
 		virtual void createRecursive(HWND hWndParent);
 
 		virtual void addChild(Base *w);
+
+		virtual void applyAreaChangeUpwards(Base *child);
 
 		BaseGroup(Base *parent) {
 			assert(parent);
@@ -191,6 +200,8 @@ namespace SmartDlg {
 		virtual LPCSTR CLASS_NAME() { return "Static"; }
 
 	public:
+		void setText(const char *text_new);
+
 		Label(Base *parent, const char *str) : BaseWidget(parent) {
 			text = str;
 		}

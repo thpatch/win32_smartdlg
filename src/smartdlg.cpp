@@ -107,12 +107,32 @@ namespace SmartDlg {
 		return ret;
 	}
 
+	void Base::applyAreaChangeUpwards(Base *child)
+	{
+		if(parent) {
+			parent->applyAreaChangeUpwards(child);
+		} else {
+			applyDimensionsRecursive();
+		}
+	}
+
 	void BaseWidget::applyFontRecursive()
 	{
 		const auto &font = getFont();
 		SendMessageW(hWnd, WM_SETFONT, (WPARAM)font.hFont, 0);
 		if(child) {
 			child->applyFontRecursive();
+		}
+	}
+
+	void BaseWidget::applyDimensionsRecursive()
+	{
+		const auto &pos = getPosPadded();
+		const auto &area = decorate(getRealArea());
+		SetWindowPos(hWnd, nullptr, pos.x, pos.y, area.x, area.y, 0);
+		UpdateWindow(hWnd);
+		if(child) {
+			child->applyDimensionsRecursive();
 		}
 	}
 
@@ -142,6 +162,19 @@ namespace SmartDlg {
 		w->parent = this;
 	}
 
+	void BaseWidget::applyAreaChangeUpwards(Base *child)
+	{
+		assert(child);
+		const auto &area_child = child->pad(child->getRealArea());
+		const auto &area_this = getArea();
+		if(area_child.x > area_this.x || area_child.y > area_this.y) {
+			area_stale = true;
+			Base::applyAreaChangeUpwards(this);
+		} else {
+			child->applyDimensionsRecursive();
+		}
+	}
+
 	void BaseWidget::setText(const char *text_new)
 	{
 		text = text_new;
@@ -156,6 +189,13 @@ namespace SmartDlg {
 		}
 	}
 
+	void BaseGroup::applyDimensionsRecursive()
+	{
+		for(auto &it : children) {
+			it->applyDimensionsRecursive();
+		}
+	}
+
 	void BaseGroup::createRecursive(HWND hWndParent)
 	{
 		for(auto &it : children) {
@@ -167,6 +207,30 @@ namespace SmartDlg {
 	{
 		children.push_back(w);
 		w->parent = this;
+	}
+
+	void BaseGroup::applyAreaChangeUpwards(Base *child)
+	{
+		assert(child);
+		const auto &area_child = child->pad(child->getArea());
+		const auto &area_group = getRealArea();
+
+		bool larger_x = area_child.x > area_group.x;
+		bool larger_y = area_child.y > area_group.y;
+
+		if(larger_x || larger_y) {
+			area_stale = true;
+			for(auto &it : children) {
+				if(it != child) {
+					const auto &area_it = it->getArea();
+					it->area_stale  = (larger_x && area_it.x == MAX_AREA);
+					it->area_stale |= (larger_y && area_it.y == MAX_AREA);
+				}
+			}
+			Base::applyAreaChangeUpwards(this);
+		} else {
+			child->applyDimensionsRecursive();
+		}
 	}
 	/// -----------------
 
@@ -226,6 +290,16 @@ namespace SmartDlg {
 		DrawText(font.hDC, text, -1, &rect, DT_CALCRECT);
 		area.x = rect.right;
 		area.y = rect.bottom;
+	}
+
+	void Label::setText(const char *text_new)
+	{
+		text = text_new;
+		area_stale = true;
+		Base::applyAreaChangeUpwards(this);
+		// Doing this after the size change
+		// seems to avoid rendering glitches.
+		SetWindowTextU(hWnd, text_new);
 	}
 	/// -----
 
